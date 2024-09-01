@@ -1,0 +1,13 @@
+# Files
+Dockerfile*
+.dockerignore
+README.md
+npm-debug.log
+
+# Folders
+.git/
+node_modules/
+
+.next/
+!.next/static
+!.next/standalone

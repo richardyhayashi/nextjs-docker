@@ -1,29 +1,48 @@
 # Base image.]
-FROM node:22.7.0-alpine
+FROM node:22.7.0- AS base
 
 # Set evironment variables.
 ENV LANG=C.UTF-8
+
+RUN apk add --no-cache libc6-compat
 
 # Set up working directory.
 WORKDIR /app
 
 # Copy package.json file to working directory.
-COPY /src/package.json .
+COPY /src/package*.json .
 
 # Install packages.
 RUN npm install
 #RUN yarn
 
-# Copy directory.
-COPY /src .
+FROM base AS build
+ENV LANG=C.UTF-8
+WORKDIR /app
+COPY --from=deps /app//node_modules ./node_modules
+COPY . .
 
-# Build.
 RUN npm run build
 #RUN yarn build
 
-# Document exposed port.
-EXPOSE ${NEXTJS_PORT}
+FROM base AS something
+WORKDIR /app
 
-# Start app.
-CMD ["npm", "run", "start"]
-#CMD　["yarn", "start"]
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+COPY --from=build /app/public ./public
+
+RUN mkdir .next
+RUN chown nextjs:nodejs .next
+
+COPY --from=build --chown=nextjs:nodejs /app/.next/standalone .
+COPY --from=build --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT=3000
+
+CMD HOSTNAME="0.0.0.0" node server.js
