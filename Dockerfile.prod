@@ -17,9 +17,13 @@ RUN npm install
 # Copy directory.
 COPY /src .
 
+# Build.
+RUN npm run build
+#RUN yarn build
+
 # Document exposed port.
 EXPOSE ${NEXTJS_PORT}
 
 # Start app.
-CMD ["npm", "run", "dev"]
-#CMD　["yarn", "dev"]
+CMD ["npm", "run", "start"]
+#CMD　["yarn", "start"]
